@@ -11,7 +11,7 @@ version = "0.3.1"
 version_files = ["pyproject.toml:^version"]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.12"
+python = ">=3.9,<4.0"
 dbt-core = ">=1.6.0,<1.8"
 requests = "^2.31.0"
 google-cloud-storage = "2.13.0"
