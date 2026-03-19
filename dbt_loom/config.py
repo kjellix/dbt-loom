@@ -4,7 +4,7 @@ import re
 from typing import List, Union
 from urllib.parse import ParseResult, urlparse
 
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator, validator
 
 from dbt_loom.clients.az_blob import AzureReferenceConfig
 from dbt_loom.clients.dbt_cloud import DbtCloudReferenceConfig
@@ -49,6 +49,18 @@ class FileReferenceConfig(BaseModel):
         return urlparse(Path(v).absolute().as_uri())
 
 
+_TYPE_TO_CONFIG = {
+    ManifestReferenceType.file: FileReferenceConfig,
+    ManifestReferenceType.dbt_cloud: DbtCloudReferenceConfig,
+    ManifestReferenceType.paradime: ParadimeReferenceConfig,
+    ManifestReferenceType.gcs: GCSReferenceConfig,
+    ManifestReferenceType.s3: S3ReferenceConfig,
+    ManifestReferenceType.azure: AzureReferenceConfig,
+    ManifestReferenceType.snowflake: SnowflakeReferenceConfig,
+    ManifestReferenceType.databricks: DatabricksReferenceConfig,
+}
+
+
 class ManifestReference(BaseModel):
     """Reference information for a manifest to be loaded into dbt-loom."""
 
@@ -66,6 +78,25 @@ class ManifestReference(BaseModel):
     ]
     excluded_packages: List[str] = Field(default_factory=list)
     optional: bool = False
+
+    @field_validator("config", mode="before")
+    @classmethod
+    def resolve_config_type(cls, v, info):
+        """Resolve the config to the correct type based on the manifest
+        reference type.
+
+        Pydantic v1 Union resolution tries each type in order and returns the
+        first match. This can cause configs meant for other types (e.g.,
+        DatabricksReferenceConfig) to be incorrectly parsed as
+        FileReferenceConfig when both have a `path` field. This validator
+        explicitly constructs the correct config class based on `type`.
+        """
+        ref_type = info.data.get("type")
+        if ref_type is not None and isinstance(v, dict):
+            config_cls = _TYPE_TO_CONFIG.get(ref_type)
+            if config_cls is not None:
+                return config_cls(**v)
+        return v
 
 
 class dbtLoomConfig(BaseModel):

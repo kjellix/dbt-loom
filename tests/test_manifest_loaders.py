@@ -11,6 +11,7 @@ from dbt_loom.config import (
     ManifestReferenceType,
     LoomConfigurationError,
 )
+from dbt_loom.clients.dbx import DatabricksReferenceConfig
 from dbt_loom.manifests import ManifestLoader, UnknownManifestPathType
 
 
@@ -130,3 +131,24 @@ def test_load_from_local_filesystem_not_optional_missing():
     manifest_loader = ManifestLoader()
     with pytest.raises(LoomConfigurationError):
         manifest_loader.load(manifest_reference)
+
+
+def test_manifest_reference_resolves_databricks_config():
+    """Verify that type=databricks produces DatabricksReferenceConfig, not FileReferenceConfig."""
+    ref = ManifestReference(
+        name="test_dbx",
+        type=ManifestReferenceType.databricks,
+        config={"path": "/Volumes/my_catalog/my_schema/my_volume/manifest.json.gz"},
+    )
+    assert isinstance(ref.config, DatabricksReferenceConfig)
+    assert ref.config.path == "/Volumes/my_catalog/my_schema/my_volume/manifest.json.gz"
+
+
+def test_manifest_reference_resolves_file_config():
+    """Verify that type=file still produces FileReferenceConfig."""
+    ref = ManifestReference(
+        name="test_file",
+        type=ManifestReferenceType.file,
+        config={"path": "manifest.json"},
+    )
+    assert isinstance(ref.config, FileReferenceConfig)
