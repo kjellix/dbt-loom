@@ -294,7 +294,14 @@ class dbtLoom(dbtPlugin):
 
             loom_nodes = convert_model_nodes_to_model_node_args(filtered_nodes)
 
-            self.models.update(loom_nodes)
+            # Nodes owned by this manifest's project are authoritative and
+            # should always be used. Transitive dependency nodes (from other
+            # packages) should only be added if not already provided by a
+            # previous, more authoritative manifest.
+            for key, value in loom_nodes.items():
+                is_authoritative = value.package_name == manifest_name
+                if is_authoritative or key not in self.models:
+                    self.models[key] = value
 
     @dbt_hook
     def get_nodes(self) -> PluginNodes:
