@@ -131,7 +131,8 @@ class dbtLoom(dbtPlugin):
         self.config: Optional[dbtLoomConfig] = self.read_config(configuration_path)
         self.models: Dict[str, LoomModelNodeArgs] = {}
 
-        self._patch_ref_protection()
+        if self.config is not None:
+            self._patch_ref_protection()
 
         if not self.config or (self.config and not self.config.enable_telemetry):
             self._patch_plugin_telemetry()
