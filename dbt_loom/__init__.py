@@ -101,6 +101,24 @@ def convert_model_nodes_to_model_node_args(
     }
 
 
+def merge_loom_nodes(
+    existing_nodes: Dict[str, LoomModelNodeArgs],
+    new_nodes: Dict[str, LoomModelNodeArgs],
+    manifest_name: str,
+) -> None:
+    """Merge ``new_nodes`` from a manifest into ``existing_nodes`` in place.
+
+    Nodes owned by this manifest's project are authoritative and should
+    always be used. Transitive dependency nodes (from other packages) should
+    only be added if not already provided by a previous, more authoritative
+    manifest.
+    """
+    for key, value in new_nodes.items():
+        is_authoritative = value.package_name == manifest_name
+        if is_authoritative or key not in existing_nodes:
+            existing_nodes[key] = value
+
+
 @dataclass
 class LoomRunnableConfig:
     """A shim class to allow is_invalid_*_ref functions to correctly handle access for loom-injected models."""
@@ -294,14 +312,7 @@ class dbtLoom(dbtPlugin):
 
             loom_nodes = convert_model_nodes_to_model_node_args(filtered_nodes)
 
-            # Nodes owned by this manifest's project are authoritative and
-            # should always be used. Transitive dependency nodes (from other
-            # packages) should only be added if not already provided by a
-            # previous, more authoritative manifest.
-            for key, value in loom_nodes.items():
-                is_authoritative = value.package_name == manifest_name
-                if is_authoritative or key not in self.models:
-                    self.models[key] = value
+            merge_loom_nodes(self.models, loom_nodes, manifest_name)
 
     @dbt_hook
     def get_nodes(self) -> PluginNodes:

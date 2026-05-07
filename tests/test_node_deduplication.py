@@ -1,6 +1,10 @@
 """Tests for node deduplication when the same node appears in multiple upstream manifests."""
 
-from dbt_loom import identify_node_subgraph, convert_model_nodes_to_model_node_args
+from dbt_loom import (
+    convert_model_nodes_to_model_node_args,
+    identify_node_subgraph,
+    merge_loom_nodes,
+)
 
 
 def _make_manifest(project_name, nodes):
@@ -33,10 +37,7 @@ def _merge_manifests(manifest_pairs):
     for manifest, manifest_name in manifest_pairs:
         selected_nodes = identify_node_subgraph(manifest)
         loom_nodes = convert_model_nodes_to_model_node_args(selected_nodes)
-        for key, value in loom_nodes.items():
-            is_authoritative = value.package_name == manifest_name
-            if is_authoritative or key not in models:
-                models[key] = value
+        merge_loom_nodes(models, loom_nodes, manifest_name)
     return models
 
 
