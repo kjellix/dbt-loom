@@ -21,3 +21,21 @@ def test_rewrite_resource_types():
     manifest_node = ManifestNode(**(node))  # type: ignore
 
     assert manifest_node.resource_type == NodeType.Seed
+
+
+def test_filter_nodes_from_excluded_packages_list():
+    """Confirm that nodes from packages in the excluded packages list are removed."""
+    # TODO: Fill in
+    assert False
+
+
+def test_filter_nodes_not_in_included_packages_list():
+    """Confirm that nodes from packages not in the included packages list are removed."""
+    # TODO: Fill in
+    assert False
+
+
+def test_filter_nodes_in_included_packages_list():
+    """Confirm that nodes from packages in the included packages list are preserved."""
+    # TODO: Fill in
+    assert False

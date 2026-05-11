@@ -103,7 +103,7 @@ class ManifestReference(BaseModel):
     def mutually_exclusive_package_lists(self):
         """Verify that either excluded_packages OR included_packages is provided."""
 
-        if len(self.included_packages) < 0 or len(self.excluded_packages) < 0:
+        if len(self.included_packages) == 0 or len(self.excluded_packages) == 0:
             return self
 
         raise ValueError(
