@@ -77,6 +77,7 @@ class ManifestReference(BaseModel):
         DatabricksReferenceConfig,
     ]
     excluded_packages: List[str] = Field(default_factory=list)
+    included_packages: List[str] = Field(default_factory=list)
     optional: bool = False
 
     @field_validator("config", mode="before")

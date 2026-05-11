@@ -20,7 +20,7 @@ except ModuleNotFoundError:
     from dbt.node_types import NodeType  # type: ignore
 
 
-from dbt_loom.config import dbtLoomConfig
+from dbt_loom.config import ManifestReference, dbtLoomConfig
 from dbt_loom.logging import fire_event
 from dbt_loom.manifests import ManifestLoader, ManifestNode
 
@@ -262,6 +262,20 @@ class dbtLoom(dbtPlugin):
             config_str,
         )
 
+    @staticmethod
+    def filter_models(reference: ManifestReference, node: ManifestNode) -> bool:
+        """Evaluate if a node should be included based on the node's package and the manifest reference."""
+        if (
+            len(reference.included_packages) > 0
+            and node.package_name in reference.included_packages
+        ):
+            return True
+
+        if node.package_name not in reference.excluded_packages:
+            return True
+
+        return False
+
     def initialize(self) -> None:
         """Initialize the plugin"""
 
@@ -273,6 +287,21 @@ class dbtLoom(dbtPlugin):
                 msg=f"dbt-loom: Loading manifest for `{manifest_reference.name}`"
                 f" from `{manifest_reference.type.value}`"
             )
+
+            # TODO: Consider if this is actually useful
+            # if (
+            #     len(manifest_reference.included_packages) > 0
+            #     and len(manifest_reference.excluded_packages) > 0
+            # ):
+            #     fire_event(
+            #         msg=(
+            #             "dbt-loom: Both `included_packages` and  "
+            #             "`excluded_packages` values were provided. These are "
+            #             "mutually exclusive configuration values and only one "
+            #             "can be used at a time. "
+            #         )
+            #     )
+            #     exit(1)
 
             manifest = self._manifest_loader.load(manifest_reference)
             if manifest is None:
@@ -290,7 +319,7 @@ class dbtLoom(dbtPlugin):
             filtered_nodes = {
                 key: value
                 for key, value in selected_nodes.items()
-                if value.package_name not in manifest_reference.excluded_packages
+                if self.filter_models(manifest_reference, value)
             }
 
             loom_nodes = convert_model_nodes_to_model_node_args(filtered_nodes)
