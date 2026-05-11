@@ -288,21 +288,6 @@ class dbtLoom(dbtPlugin):
                 f" from `{manifest_reference.type.value}`"
             )
 
-            # TODO: Consider if this is actually useful
-            # if (
-            #     len(manifest_reference.included_packages) > 0
-            #     and len(manifest_reference.excluded_packages) > 0
-            # ):
-            #     fire_event(
-            #         msg=(
-            #             "dbt-loom: Both `included_packages` and  "
-            #             "`excluded_packages` values were provided. These are "
-            #             "mutually exclusive configuration values and only one "
-            #             "can be used at a time. "
-            #         )
-            #     )
-            #     exit(1)
-
             manifest = self._manifest_loader.load(manifest_reference)
             if manifest is None:
                 continue
