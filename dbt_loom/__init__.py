@@ -265,11 +265,10 @@ class dbtLoom(dbtPlugin):
     @staticmethod
     def filter_models(reference: ManifestReference, node: ManifestNode) -> bool:
         """Evaluate if a node should be included based on the node's package and the manifest reference."""
-        if (
-            len(reference.included_packages) > 0
-            and node.package_name in reference.included_packages
-        ):
-            return True
+        if len(reference.included_packages) > 0:
+            if node.package_name in reference.included_packages:
+                return True
+            return False
 
         if node.package_name not in reference.excluded_packages:
             return True
