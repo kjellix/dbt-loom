@@ -81,6 +81,22 @@ def test_load_from_remote_pass(example_file):
     assert output == example_content
 
 
+def test_load_from_remote_gz_pass(example_file):
+    """Test that ManifestLoader can load a remote gzipped JSON file via HTTP(S)."""
+
+    _, example_content = example_file
+
+    file_config = FileReferenceConfig(
+        path=urlparse(
+            "https://s3.us-east-2.amazonaws.com/com.nicholasyager.dbt-loom/manifest.json.gz"
+        ),
+    )
+
+    output = ManifestLoader.load_from_http(file_config)
+
+    assert output["metadata"]["invocation_id"] == "3557bc11-ce26-4d9c-90ae-28ee866dfc21"
+
+
 def test_manifest_loader_selection(example_file):
     """Confirm scheme parsing works for picking the manifest loader."""
     _, example_content = example_file
@@ -103,7 +119,7 @@ def test_manifest_loader_selection(example_file):
 
 def test_load_from_local_filesystem_optional_missing():
     """If the manifest file does not exist, it should not raise an error if optional=True."""
-    file_config = FileReferenceConfig(path="not_exist_manifest.json")
+    file_config = FileReferenceConfig(path="not_exist_manifest.json")  # type: ignore
     manifest_reference = ManifestReference(
         name="missing",
         type=ManifestReferenceType.file,
@@ -117,7 +133,7 @@ def test_load_from_local_filesystem_optional_missing():
 
 def test_load_from_local_filesystem_not_optional_missing():
     """If the manifest file does not exist, it should raise an error if optional=False."""
-    file_config = FileReferenceConfig(path="not_exist_manifest.json")
+    file_config = FileReferenceConfig(path="not_exist_manifest.json")  # type: ignore
     manifest_reference = ManifestReference(
         name="missing",
         type=ManifestReferenceType.file,
@@ -134,7 +150,7 @@ def test_manifest_reference_resolves_databricks_config():
     ref = ManifestReference(
         name="test_dbx",
         type=ManifestReferenceType.databricks,
-        config={"path": "/Volumes/my_catalog/my_schema/my_volume/manifest.json.gz"},
+        config={"path": "/Volumes/my_catalog/my_schema/my_volume/manifest.json.gz"},  # type: ignore
     )
     assert isinstance(ref.config, DatabricksReferenceConfig)
     assert ref.config.path == "/Volumes/my_catalog/my_schema/my_volume/manifest.json.gz"
@@ -145,6 +161,6 @@ def test_manifest_reference_resolves_file_config():
     ref = ManifestReference(
         name="test_file",
         type=ManifestReferenceType.file,
-        config={"path": "manifest.json"},
+        config={"path": "manifest.json"},  # type: ignore
     )
     assert isinstance(ref.config, FileReferenceConfig)
