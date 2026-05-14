@@ -4,7 +4,7 @@ import re
 from typing import List, Union
 from urllib.parse import ParseResult, urlparse
 
-from pydantic import BaseModel, Field, field_validator, validator
+from pydantic import BaseModel, Field, field_validator, model_validator, validator
 
 from dbt_loom.clients.az_blob import AzureReferenceConfig
 from dbt_loom.clients.dbt_cloud import DbtCloudReferenceConfig
@@ -77,6 +77,7 @@ class ManifestReference(BaseModel):
         DatabricksReferenceConfig,
     ]
     excluded_packages: List[str] = Field(default_factory=list)
+    included_packages: List[str] = Field(default_factory=list)
     optional: bool = False
 
     @field_validator("config", mode="before")
@@ -97,6 +98,18 @@ class ManifestReference(BaseModel):
             if config_cls is not None:
                 return config_cls(**v)
         return v
+
+    @model_validator(mode="after")
+    def mutually_exclusive_package_lists(self):
+        """Verify that either excluded_packages OR included_packages is provided."""
+
+        if len(self.included_packages) == 0 or len(self.excluded_packages) == 0:
+            return self
+
+        raise ValueError(
+            "Cannot specify both 'included_packages' and 'excluded_packages'. "
+            "Use one or the other."
+        )
 
 
 class dbtLoomConfig(BaseModel):
