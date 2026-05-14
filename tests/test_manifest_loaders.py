@@ -5,6 +5,7 @@ from typing import Dict, Generator, Tuple
 from urllib.parse import urlparse
 
 import pytest
+from dbt_loom.clients import is_gzipped
 from dbt_loom.config import (
     FileReferenceConfig,
     ManifestReference,
@@ -164,3 +165,8 @@ def test_manifest_reference_resolves_file_config():
         config={"path": "manifest.json"},  # type: ignore
     )
     assert isinstance(ref.config, FileReferenceConfig)
+
+
+def test_gzip_detection_works():
+    """Confirm that is_gzipped returns true for gzipped magic bytes."""
+    assert is_gzipped(b"\x1f\x8b")
