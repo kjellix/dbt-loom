@@ -103,9 +103,7 @@ def test_manifest_loader_selection(example_file):
 
 def test_load_from_local_filesystem_optional_missing():
     """If the manifest file does not exist, it should not raise an error if optional=True."""
-    file_config = FileReferenceConfig(
-        path="not_exist_manifest.json"
-    )
+    file_config = FileReferenceConfig(path="not_exist_manifest.json")
     manifest_reference = ManifestReference(
         name="missing",
         type=ManifestReferenceType.file,
@@ -119,9 +117,7 @@ def test_load_from_local_filesystem_optional_missing():
 
 def test_load_from_local_filesystem_not_optional_missing():
     """If the manifest file does not exist, it should raise an error if optional=False."""
-    file_config = FileReferenceConfig(
-        path="not_exist_manifest.json"
-    )
+    file_config = FileReferenceConfig(path="not_exist_manifest.json")
     manifest_reference = ManifestReference(
         name="missing",
         type=ManifestReferenceType.file,
